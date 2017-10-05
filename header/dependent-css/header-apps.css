@@ -1,5 +1,8 @@
 @import "esri-global-shared";
 
+/* Global Header Apps
+/* ========================================================================== */
+
 .esri-header-apps p {
 	line-height: 17px;
 }
@@ -17,11 +20,18 @@
 	font-size: 20px;
 }
 
-/* Apps Container */
-
 .esri-header-apps-control {
-	cursor: pointer;
-	padding: 16px 12px 8px 10px;
+	@apply --normalize-button;
+	@apply --unset-button;
+	@apply --menu-link-styles;
+
+	display: block;
+	padding: 16px 12px 12px 10px;
+
+	@media (--width-s) {
+		margin-top: -2px;
+		padding: 16px 12px 9px 10px;
+	}
 }
 
 .esri-header-apps .empty-padding {
@@ -48,7 +58,6 @@
 }
 
 .esri-header-apps .dropdown-btn else {
-	cursor: pointer;
 	position: relative;
 }
 
@@ -95,10 +104,10 @@ html[dir="rtl"] .dropdown-menu.dropdown-right {
 	max-width: 600px;
 	padding: 1rem;
 	right: 2px; /* !important; */
-	top: 40px;
+	top: 39px;
 
 	@media (--width-s) {
-		top: 37px;
+		top: 36px;
 	}
 }
 

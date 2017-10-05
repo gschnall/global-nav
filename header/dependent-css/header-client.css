@@ -8,10 +8,12 @@
 	flex-grow: 0;
 
 	@media (--width-ml) {
-		border-left: 1px inset rgba(224, 224, 224, .41);
+		box-shadow: inset 1px 0 0 0 var(--mono-88);
+		height: 100%;
+		width: 1px;
 
 		@nest :dir(rtl) & {
-			border-left: 0 inset rgba(224, 224, 224, .41);
+			width: 0;
 		}
 	}
 }

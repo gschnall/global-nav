@@ -18,25 +18,22 @@ export default () => {
 		aria: { expanded: false, labelledby: `${prefix}-control` }
 	});
 
-	const $appSwitcherButton = $('a', {
-			href: "#",
-			tabindex: "0",
-			title: "App Launcher",
-			class: "top-nav-link",
-			"aria-label": "App Launcher"
+	const $appSwitcherIcon = $('span', {
+    title: "App Launcher",
+    "aria-label": "App Launcher Icon"
 	});
 
-	$appSwitcherButton.innerHTML = '<svg height="24px" width="24px" class="app-switcher-svg" shape-rendering="crispEdges"><rect x="1" y="1" width="4" height="4"/><rect x="10" y="1" width="4" height="4"/><rect x="19" y="1" width="4" height="4"/><rect x="1" y="10" width="4" height="4"/><rect x="10" y="10" width="4" height="4"/><rect x="19" y="10" width="4" height="4"/><rect x="1" y="19" width="4" height="4"/><rect x="10" y="19" width="4" height="4"/><rect x="19" y="19" width="4" height="4"/></svg>'
+	$appSwitcherIcon.innerHTML = '<svg height="24px" width="24px" class="app-switcher-svg" shape-rendering="crispEdges"><rect x="1" y="1" width="4" height="4"/><rect x="10" y="1" width="4" height="4"/><rect x="19" y="1" width="4" height="4"/><rect x="1" y="10" width="4" height="4"/><rect x="10" y="10" width="4" height="4"/><rect x="19" y="10" width="4" height="4"/><rect x="1" y="19" width="4" height="4"/><rect x="10" y="19" width="4" height="4"/><rect x="19" y="19" width="4" height="4"/></svg>'
 
 	/* Apps: Control
 	/* ====================================================================== */
 
-	const $controlContainer = $('div', { 
-		class: `${prefix}-control empty-padding`
+	const $controlContainer = $('button', { 
+		class: `${prefix}-control empty-padding`, id: `${prefix}-control`,
 	});
 
 	const $dropdown = $('div', {
-		class: 'dropdown padding-right-half padding-left-half'
+		class: 'dropdown'
 	});
 
 	$controlContainer.append($dropdown);
@@ -69,8 +66,8 @@ export default () => {
 	/* Apps: Helper Functions for Update
 	/* ====================================================================== */
 
-	function createDefaultAppLayout ($topAppContainer, currentApp) {
-		let abbreviationSizes = [0, 28, 20, 16, 14, 14, 12];
+  const createDefaultAppLayout = ($topAppContainer, currentApp) => {
+		const abbreviationSizes = ["0px", "32px", "24px", "20px", "18px", "16px", "14px"];
 
 		let listItem = $("li", {
 			alt: "",
@@ -90,7 +87,12 @@ export default () => {
 			appLink.append(appImageContainer);
 		}
 		else {
-			let abbreviationSize = String(abbreviationSizes[currentApp.abbr.length]) + "px";
+      let stringWidth = Math.round(getTextWidth(currentApp.abbr || "", "avenir") / 5);
+      let abbreviationSize = abbreviationSizes[stringWidth];
+      if (stringWidth > 6) { // Prevent user from exceeding icon width
+        currentApp.abbr = currentApp.abbr.substr(0, 4);
+        abbreviationSize =  abbreviationSizes[4];
+      }
 			let surfaceDiv = $("div", {"class": "appIconImage"});
 			let surfaceSpan = $("span", {
 				style: "font-size:" + abbreviationSize,
@@ -106,43 +108,53 @@ export default () => {
 		$topAppContainer.append(listItem);
 	}
 
+  const getTextWidth = (text, font) => { // Adds support for app abbreviations in all languages
+    let canvas = getTextWidth.canvas || (getTextWidth.canvas = document.createElement("canvas"));
+    let context = canvas.getContext("2d");
+    context.font = font;
+    let metrics = context.measureText(text);
+    return metrics.width;
+  }
+
 	/* Apps: On Update
 	/* ====================================================================== */
 
 	$target.addEventListener('header:update:apps', ({ detail }) => {
-		$target.appendChild($content);
-		$control.className = `${prefix}-control`;
+    if (detail.icons) {
+      $target.appendChild($content);
+      $control.className = `${prefix}-control`;
 
-		$($control, { aria: { label: detail.label } });
+      $($control, { aria: { label: detail.label } });
 
-		let numberOfApps = detail.icons.length;
-		let dropdownWidth = " dropdown-width-" + String(numberOfApps < 4 ? numberOfApps : 4);
+      let numberOfApps = detail.icons.length;
+      let dropdownWidth = " dropdown-width-" + String(numberOfApps < 4 ? numberOfApps : 4);
 
-		// App Icons
+      // App Icons
 
-		const $topAppContainer = $("ul", {
-			class: `${prefix}-prevent-dropdown appContainer`,
-			role: "menu"
-		});
+      const $topAppContainer = $("ul", {
+        class: `${prefix}-prevent-dropdown appContainer`,
+        role: "menu"
+      });
 
-		let maxAppsPerDialog = numberOfApps >= 100 ? 100 : numberOfApps;
-		for (let i = 0; i < maxAppsPerDialog; i++) {
-			if (detail.icons[i]["webMappingApp"] && detail.icons.appTitle !== this.currentUserApps[i]["title"].toLowerCase()) {
-				this._createWebMappingAppLayout($topAppContainer, i);
-			} else if (detail.icons[i].label) {
-				createDefaultAppLayout($topAppContainer, detail.icons[i]);
-			}
-		}
+      let maxAppsPerDialog = numberOfApps >= 100 ? 100 : numberOfApps;
+      for (let i = 0; i < maxAppsPerDialog; i++) {
+        if (detail.icons[i]["webMappingApp"] && detail.icons.appTitle !== this.currentUserApps[i]["title"].toLowerCase()) {
+          this._createWebMappingAppLayout($topAppContainer, i);
+        } else if (detail.icons[i].label) {
+          createDefaultAppLayout($topAppContainer, detail.icons[i]);
+        }
+      }
 
-		// Container
-		const $dropdownWrapper = $('div', {class: `${prefix}-prevent-dropdown`}, $topAppContainer);
+      // Container
+      const $dropdownWrapper = $('div', {class: `${prefix}-prevent-dropdown`}, $topAppContainer);
 
-		const $dropdownNav = $('nav', {
-			class: `${prefix}-prevent-dropdown dropdown-menu dropdown-right app-switcher-dropdown-menu` + dropdownWidth,
-			role: "menu"
-		}, $dropdownWrapper);
+      const $dropdownNav = $('nav', {
+        class: `${prefix}-prevent-dropdown dropdown-menu dropdown-right app-switcher-dropdown-menu` + dropdownWidth,
+        role: "menu"
+      }, $dropdownWrapper);
 
-		$replaceAll($dropdown, $appSwitcherButton, $dropdownNav);
+      $replaceAll($dropdown, $appSwitcherIcon, $dropdownNav);
+    }
 	});
 
 	return $target;
